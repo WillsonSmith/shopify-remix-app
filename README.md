@@ -1,6 +1,6 @@
 # Remix Shopify App
 
-A bare-bones Shopify app build with [Remix](remix.run);
+A bare-bones Shopify app build with [Remix](https://remix.run)
 
 Not supported by or affiliated with Shopify
 
