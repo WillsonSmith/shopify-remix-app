@@ -24,7 +24,7 @@ export async function beginAuth(request: Request, params: { shop: string }) {
   const state = `some_unique_string_to_be_used_for_state_verification`;
   const query = `?client_id=${
     process.env.API_KEY || ""
-  }&scope=write_products,read_products,read_files,write_files&redirect_uri=https://${
+  }&scope=write_products,read_products&redirect_uri=https://${
     url.host
   }/auth/callback&state=${state}&grant_options[]=per-user`;
 
