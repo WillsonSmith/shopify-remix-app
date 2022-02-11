@@ -19,6 +19,31 @@ const storage = createCookieSessionStorage({
   },
 });
 
+export async function getUserSession(request: Request) {
+  return storage.getSession(request.headers.get("Cookie"));
+}
+
+export async function getShop(request: Request) {
+  const session = await getUserSession(request);
+  const shop = session.get("shop");
+  if (!shop) throw new Error("Shop is not set");
+  return shop;
+}
+
+export async function getAccessToken(request: Request) {
+  const session = await getUserSession(request);
+  const accessToken = session.get("accessToken");
+  if (!accessToken || typeof accessToken !== "string") return null;
+  return accessToken;
+}
+
+export async function requireAccessToken(request: Request) {
+  const session = await getUserSession(request);
+  const accessToken = session.get("accessToken");
+  if (!accessToken || typeof accessToken !== "string") throw redirect("/login");
+  return accessToken;
+}
+
 export async function beginAuth(request: Request, params: { shop: string }) {
   const { shop } = params;
   if (!shop) throw new Error('"shop" query param is required');
@@ -43,31 +68,6 @@ export async function beginAuth(request: Request, params: { shop: string }) {
       "Set-Cookie": await storage.commitSession(session),
     },
   });
-}
-
-export async function getUserSession(request: Request) {
-  return storage.getSession(request.headers.get("Cookie"));
-}
-
-export async function getShop(request: Request) {
-  const session = await getUserSession(request);
-  const shop = session.get("shop");
-  if (!shop) throw new Error("Shop is not set");
-  return shop;
-}
-
-export async function getAccessToken(request: Request) {
-  const session = await getUserSession(request);
-  const accessToken = session.get("accessToken");
-  if (!accessToken || typeof accessToken !== "string") return null;
-  return accessToken;
-}
-
-export async function requireAccessToken(request: Request) {
-  const session = await getUserSession(request);
-  const accessToken = session.get("accessToken");
-  if (!accessToken || typeof accessToken !== "string") throw redirect("/login");
-  return accessToken;
 }
 
 export async function handleCallback(request: Request) {
