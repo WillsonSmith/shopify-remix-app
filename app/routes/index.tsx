@@ -29,9 +29,6 @@ export default function Index() {
                 <li>
                   <Link to="/login">Login</Link>
                 </li>
-                <li>
-                  <Link to="/auth/callback">Auth</Link>
-                </li>
               </ul>
             </Card>
           </Layout.Section>
