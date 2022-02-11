@@ -1,4 +1,4 @@
-import { Card, List } from "@shopify/polaris";
+import { Card, List, Page } from "@shopify/polaris";
 import { LoaderFunction, useLoaderData } from "remix";
 import { getShop, requireAccessToken } from "~/utils/session.server";
 
@@ -49,18 +49,20 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function Products() {
   const products = useLoaderData();
   return (
-    <Card title="Product list" sectioned>
-      <List type="bullet">
-        {products.map((edge: any) => {
-          const { node: product } = edge;
-          return (
-            <List.Item key={product.id}>
-              <h2>{product.title}</h2>
-              <p>{product.description}</p>
-            </List.Item>
-          );
-        })}
-      </List>
-    </Card>
+    <Page title="Products">
+      <Card title="Product list" sectioned>
+        <List type="bullet">
+          {products.map((edge: any) => {
+            const { node: product } = edge;
+            return (
+              <List.Item key={product.id}>
+                <h2>{product.title}</h2>
+                <p>{product.description}</p>
+              </List.Item>
+            );
+          })}
+        </List>
+      </Card>
+    </Page>
   );
 }

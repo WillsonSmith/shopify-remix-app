@@ -1,4 +1,4 @@
-import { AppProvider, Page } from "@shopify/polaris";
+import { AppProvider } from "@shopify/polaris";
 import shopifyStyles from "@shopify/polaris/build/esm/styles.css";
 import enTranslations from "@shopify/polaris/locales/en.json";
 
@@ -15,9 +15,7 @@ export const links: LinksFunction = () => {
 export default function App() {
   return (
     <AppProvider i18n={enTranslations}>
-      <Page title="Products">
-        <Outlet />
-      </Page>
+      <Outlet />
     </AppProvider>
   );
 }
