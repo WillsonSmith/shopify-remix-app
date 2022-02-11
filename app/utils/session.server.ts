@@ -21,19 +21,23 @@ const storage = createCookieSessionStorage({
 
 export async function beginAuth(request: Request, params: { shop: string }) {
   const { shop } = params;
+  if (!shop) throw new Error('"shop" query param is required');
+
   const url = new URL(request.url);
   const session = await storage.getSession();
   const state = nonce();
   session.set("state", state);
 
-  const query = `?client_id=${
-    process.env.API_KEY || ""
-  }&scope=write_products,read_products&redirect_uri=https://${
-    url.host
-  }/auth/callback&state=${state}&grant_options[]=per-user`;
+  const queryParams = new URLSearchParams({
+    client_id: process.env.API_KEY!,
+    scope: "read_products,write_products",
+    redirect_uri: `https://${url.host}/auth/callback`,
+    state,
+    "grant_options[]": "per-user",
+  });
 
-  if (!shop) throw new Error('"shop" query param is required');
-  const authRoute = `https://${shop}.myshopify.com/admin/oauth/authorize${query}`;
+  const query = decodeURIComponent(queryParams.toString());
+  const authRoute = `https://${shop}.myshopify.com/admin/oauth/authorize?${query}`;
   return redirect(authRoute, {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
