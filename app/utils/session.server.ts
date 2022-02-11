@@ -74,6 +74,9 @@ export async function handleCallback(request: Request) {
   const shop = url.searchParams.get("shop");
   const code = url.searchParams.get("code");
   if (!code) throw redirect("/");
+  if (!(await passesSecurityCheck(request))) {
+    throw new Error("Security check failed");
+  }
 
   const params = new URLSearchParams([
     ["client_id", process.env.API_KEY || ""],
@@ -88,15 +91,12 @@ export async function handleCallback(request: Request) {
         method: "POST",
       }
     );
-
-    if (!(await passesSecurityCheck(request))) {
-      throw new Error("Security check failed");
-    }
-
     const json = await response.json();
     const session = await getUserSession(request);
+
     session.set("shop", shop);
     session.set("accessToken", json.access_token);
+
     return redirect("/app/products", {
       headers: {
         "Set-Cookie": await storage.commitSession(session),
