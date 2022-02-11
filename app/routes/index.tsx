@@ -1,6 +1,4 @@
 import { Link, LinksFunction, LoaderFunction } from "remix";
-import { requireActiveShop } from "~/utils/db.server";
-
 import { AppProvider, Page, Card, Layout } from "@shopify/polaris";
 import shopifyStyles from "@shopify/polaris/build/esm/styles.css";
 import enTranslations from "@shopify/polaris/locales/en.json";
