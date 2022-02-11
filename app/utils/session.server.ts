@@ -22,13 +22,10 @@ const storage = createCookieSessionStorage({
 export async function beginAuth(request: Request, params: { shop: string }) {
   const { shop } = params;
   const url = new URL(request.url);
-
   const session = await storage.getSession();
-
   const state = nonce();
   session.set("state", state);
 
-  // const state = `some_unique_string_to_be_used_for_state_verification`;
   const query = `?client_id=${
     process.env.API_KEY || ""
   }&scope=write_products,read_products&redirect_uri=https://${
@@ -107,7 +104,7 @@ export async function handleCallback(request: Request) {
   }
 }
 
-async function passesSecurityCheck(request) {
+async function passesSecurityCheck(request: Request) {
   const session = await getUserSession(request);
   const url = new URL(request.url);
   const state = url.searchParams.get("state");
@@ -122,7 +119,7 @@ async function passesSecurityCheck(request) {
     if (key !== "hmac") searchParams.append(key, value);
   }
   const localHmac = crypto
-    .createHmac("sha256", process.env.API_SECRET_KEY)
+    .createHmac("sha256", process.env.API_SECRET_KEY!)
     .update(searchParams.toString())
     .digest("hex");
 
