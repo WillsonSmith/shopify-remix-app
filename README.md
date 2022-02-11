@@ -4,10 +4,6 @@ A bare-bones Shopify app build with [Remix](https://remix.run)
 
 Not supported by or affiliated with Shopify
 
-> NOTE: THIS DOES NOT DO VALIDATIONS
->
-> You MUST validate your `state` and `hmac` in `session.server.ts`
-
 1. Create `.env`
 2. Add `API_KEY` to `.env`
 3. Add `API_SECRET_KEY` to `.env`

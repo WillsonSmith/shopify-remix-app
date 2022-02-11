@@ -1,3 +1,5 @@
+import { nonce } from "./nonce";
+import crypto from "crypto";
 import { createCookieSessionStorage, redirect } from "remix";
 
 const sessionSecret = process.env.SESSION_SECRET;
@@ -21,7 +23,12 @@ export async function beginAuth(request: Request, params: { shop: string }) {
   const { shop } = params;
   const url = new URL(request.url);
 
-  const state = `some_unique_string_to_be_used_for_state_verification`;
+  const session = await storage.getSession();
+
+  const state = nonce();
+  session.set("state", state);
+
+  // const state = `some_unique_string_to_be_used_for_state_verification`;
   const query = `?client_id=${
     process.env.API_KEY || ""
   }&scope=write_products,read_products&redirect_uri=https://${
@@ -30,7 +37,11 @@ export async function beginAuth(request: Request, params: { shop: string }) {
 
   if (!shop) throw new Error('"shop" query param is required');
   const authRoute = `https://${shop}.myshopify.com/admin/oauth/authorize${query}`;
-  return redirect(authRoute);
+  return redirect(authRoute, {
+    headers: {
+      "Set-Cookie": await storage.commitSession(session),
+    },
+  });
 }
 
 export async function getUserSession(request: Request) {
@@ -78,14 +89,12 @@ export async function handleCallback(request: Request) {
       }
     );
 
-    /**
-     * DO VALIDATIONS HERE
-     * VALIDATE nonce STATE
-     * VALIDATE hmac
-     */
+    if (!(await passesSecurityCheck(request))) {
+      throw new Error("Security check failed");
+    }
 
     const json = await response.json();
-    const session = await storage.getSession();
+    const session = await getUserSession(request);
     session.set("shop", shop);
     session.set("accessToken", json.access_token);
     return redirect("/app/products", {
@@ -96,4 +105,28 @@ export async function handleCallback(request: Request) {
   } catch (error) {
     throw error;
   }
+}
+
+async function passesSecurityCheck(request) {
+  const session = await getUserSession(request);
+  const url = new URL(request.url);
+  const state = url.searchParams.get("state");
+  const storedState = session.get("state");
+
+  // 1. Verify that the state matches the one we stored in the session
+  if (state !== storedState) return false;
+
+  // 2. Verify that the hmac is signed
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of url.searchParams) {
+    if (key !== "hmac") searchParams.append(key, value);
+  }
+  const localHmac = crypto
+    .createHmac("sha256", process.env.API_SECRET_KEY)
+    .update(searchParams.toString())
+    .digest("hex");
+
+  const hmac = url.searchParams.get("hmac");
+  if (localHmac !== hmac) return false;
+  return true;
 }
